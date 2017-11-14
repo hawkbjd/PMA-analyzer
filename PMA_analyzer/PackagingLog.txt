@@ -1,0 +1,23 @@
+ant:
+<ant>
+  <mkdir dir="\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer\for_redistribution" />
+  <mkdir dir="\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer\for_testing" />
+  <mkdir dir="\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer\for_redistribution_files_only" />
+</ant>
+mcc -C -o PMA_analyzer -W WinMain:PMA_analyzer -T link:exe -d '\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer\for_testing' -R '-logfile,log.txt' -v '\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer.m' -a '\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\button_pma.m' -a '\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\circle.m' -a '\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\draw_pma.m' -a '\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\output_pma.m' -a '\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\plot_circles.m' -a '\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer.prj' -a '\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer2.m' -a '\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\script_plot_circle.m' -a '\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\spots_pma.m' 
+Compiler version: 5.2 (R2014b)
+Dependency analysis by REQUIREMENTS.
+[Warning: Adding path "\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB
+programs" to Compiler path instance.] 
+Parsing file "\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer.m"
+	(Referenced from: "Compiler Command Line").
+Deleting 0 temporary MEX authorization files.
+Generating file "\\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer\for_testing\readme.txt".
+Packaging...
+Adding custom icon C:\Program Files\MATLAB\R2014b\toolbox\compiler\Resources\default_icon.ico to \\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer\for_testing\PMA_analyzer.exe.
+Attempting to embed the CTF archive into the application \\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer\for_testing\PMA_analyzer.exe.
+Finished embedding CTF archive. Deleting the external CTF archive.
+Creating the bundle...
+Web based installer created at \\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer\for_redistribution\MyAppInstaller_web.exe.
+Self contained installer created at \\my.files.iastate.edu\users\bhawk\Documents\MATLAB\SLB programs\PMA_analyzer\for_redistribution\MyAppInstaller_mcr.exe.
+Packaging complete.
