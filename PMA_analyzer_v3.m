@@ -1,4 +1,4 @@
-function varargout = PMA_analyzer(varargin)
+function varargout = PMA_analyzer_v3(varargin)
 
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -24,6 +24,7 @@ handles.output = hObject;
 guidata(hObject, handles);
 initialize(handles,1);
 addlistener(handles.slider_windowPMA,'Value','PostSet',@listener_slider_windowPMA_Callback);
+addlistener(handles.frame_index,'Value','PostSet',@listener_frame_index_Callback);
 
 function varargout = PMA_analyzer_OutputFcn(hObject, eventdata, handles) 
 varargout{1} = handles.output;
@@ -294,20 +295,24 @@ frame_index = str2double(get(handles.frame_index, 'String'));
 set(handles.slider_windowPMA, 'Value', frame_index);
 draw_frame();
 
-function listener_slider_windowPMA_Callback(hObject, eventdata)
+%added by bhawk 20180508
+function listener_frame_index_Callback(hObject, eventdata)
 global ghandles
-frame_index = round(get(ghandles.slider_windowPMA,'value'));
-%disp(frame_index)
-%added by bhawk 20180501
+frame_index = str2double(get(ghandles.frame_index, 'String'));
 if frame_index > 2500
-    disp('frame_index triggered')
+    disp('frame_index listener triggered')
     set(ghandles.background, 'Color','red')
 else
     set(ghandles.background, 'Color','white')
 end
+
+function listener_slider_windowPMA_Callback(hObject, eventdata)
+global ghandles
+frame_index = round(get(ghandles.slider_windowPMA,'value'));
 set(ghandles.frame_index, 'value', frame_index);
 set(ghandles.frame_index, 'string', frame_index);
 draw('slider');
+
 function edit_CONTRAST_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
@@ -1230,19 +1235,19 @@ end
 
 
 
-% --- Executes on button press in chkGrid.
-function chkGrid_Callback(hObject, eventdata, handles)
-% hObject    handle to chkGrid (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-Grid = [handles.horizontal_grid_line_bottom, handles.horizontal_grid_line_top, handles.Vertical_grid_line];
-status = get(handles.chkGrid, 'Value');
-if status == 1
-    set(Grid, 'Visible', 'On')
-end
-if status == 0
-    set(Grid, 'Visible', 'Off')
-end
+% % --- Executes on button press in chkGrid.
+% function chkGrid_Callback(hObject, eventdata, handles)
+% % hObject    handle to chkGrid (see GCBO)
+% % eventdata  reserved - to be defined in a future version of MATLAB
+% % handles    structure with handles and user data (see GUIDATA)
+% Grid = [handles.horizontal_grid_line_bottom, handles.horizontal_grid_line_top, handles.Vertical_grid_line];
+% status = get(handles.chkGrid, 'Value');
+% if status == 1
+%     set(Grid, 'Visible', 'On')
+% end
+% if status == 0
+%     set(Grid, 'Visible', 'Off')
+% end
 
 
 % --- Executes on button press in CB_horizontal_grid_top.
@@ -1291,3 +1296,18 @@ function background_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to background (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on button press in CB_grid.
+function CB_grid_Callback(hObject, eventdata, handles)
+% hObject    handle to CB_grid (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+Grid = [handles.horizontal_grid_line_bottom, handles.horizontal_grid_line_top, handles.Vertical_grid_line];
+status = get(handles.CB_grid, 'Value');
+if status == 1
+    set(Grid, 'Visible', 'On')
+end
+if status == 0
+    set(Grid, 'Visible', 'Off')
+end
