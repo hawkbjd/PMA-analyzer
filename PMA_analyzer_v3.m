@@ -3,8 +3,8 @@ function varargout = PMA_analyzer_v3(varargin)
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @PMA_analyzer_OpeningFcn, ...
-                   'gui_OutputFcn',  @PMA_analyzer_OutputFcn, ...
+                   'gui_OpeningFcn', @PMA_analyzer_v3_OpeningFcn, ...
+                   'gui_OutputFcn',  @PMA_analyzer_v3_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -16,7 +16,7 @@ if nargout
 else
     gui_mainfcn(gui_State, varargin{:});
 end
-function PMA_analyzer_OpeningFcn(hObject, eventdata, handles, varargin)
+function PMA_analyzer_v3_OpeningFcn(hObject, eventdata, handles, varargin)
 
 
 handles.output = hObject;
@@ -26,7 +26,7 @@ initialize(handles,1);
 addlistener(handles.slider_windowPMA,'Value','PostSet',@listener_slider_windowPMA_Callback);
 addlistener(handles.frame_index,'Value','PostSet',@listener_frame_index_Callback);
 
-function varargout = PMA_analyzer_OutputFcn(hObject, eventdata, handles) 
+function varargout = PMA_analyzer_v3_OutputFcn(hObject, eventdata, handles) 
 varargout{1} = handles.output;
 
 %%%%%%%%%%%%%%%%%%%%%%  PMA WINDOW  %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -312,7 +312,6 @@ frame_index = round(get(ghandles.slider_windowPMA,'value'));
 set(ghandles.frame_index, 'value', frame_index);
 set(ghandles.frame_index, 'string', frame_index);
 draw('slider');
-
 function edit_CONTRAST_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
@@ -474,20 +473,26 @@ global NUM_BIN;
 % time of fused vesicles "docked hemifused fused"
 
 
-spot_index = find(g_spots.etime(:,3) < pma.len);
-dbg_str = sprintf('SAVING number spot_index:%d',numel(spot_index)); disp(dbg_str);
+fuse_index = find(g_spots.etime(:,3) < pma.len);
+dbg_str = sprintf('SAVING number spot_index:%d',numel(fuse_index)); disp(dbg_str);
 time_index  = 0;
-if ~isempty(spot_index)
+if ~isempty(fuse_index)
 save_name = [pma.dir,'new_',pma.name,'_fused_vesicles'];
-save_name = sprintf('%s_%d.time',save_name,numel(spot_index));
+save_name = sprintf('%s_%d.time',save_name,numel(fuse_index));
 fid = fopen(save_name,'wt');
-    for i = spot_index'
+    for i = fuse_index'
         time_index = time_index + 1;
+        g_spots.etime(i,4) = g_spots.etime(i,3)-g_spots.etime(i,1);
+        if g_spots.etime(i,4) == 0
+            g_spots.etime(i,5) = 1;
+        end
         fprintf(fid,'%d,\t   %d,\t   %d,\t   %d\n',time_index,g_spots.etime(i,1),g_spots.etime(i,2),g_spots.etime(i,3));
     end
     fclose(fid);
 end
 
+%added 20180511
+fusion_instant = sum(g_spots.etime(:,5));
 
 % Diff btn "hemi-dock  fused-hemi  fused-docked"
 fid = fopen([pma.dir,'new_',pma.name,'_fused_diff.time'],'wt');
@@ -506,20 +511,29 @@ fclose(fid);
 % time of docked vesicles "dock  fused-hemi  fused-docked"
 
 
-spot_index = find(g_spots.etime(:,1) < pma.len);
-dbg_str = sprintf('SAVING number spot_index:%d',numel(spot_index)); disp(dbg_str);
+docked_index = find(g_spots.etime(:,1) < pma.len);
+dbg_str = sprintf('SAVING number spot_index:%d',numel(docked_index)); disp(dbg_str);
 time_index  = 0;
-if ~isempty(spot_index)
+if ~isempty(docked_index)
 save_name = [pma.dir,'new_',pma.name,'_docked_vesicles'];
-save_name = sprintf('%s_%d.time',save_name,numel(spot_index));
+save_name = sprintf('%s_%d.time',save_name,numel(docked_index));
 fid = fopen(save_name,'wt');
-    for i = spot_index'
+    for i = docked_index'
         time_index = time_index + 1;
         fprintf(fid,'%d,\t   %d,\t   %d,\t   %d\n',time_index,g_spots.etime(i,1),g_spots.etime(i,2),g_spots.etime(i,3));
     end
 end
 fclose(fid);
 
+%added 20180511 write summary file for events: dock fusion and instant
+%fusion
+
+save_name = [pma.dir,'new_',pma.name,'_summary.txt'];
+fid = fopen(save_name,'wt');
+fprintf(fid,'Docked:\t\t\t%d\n',length(docked_index));
+fprintf(fid,'Fused:\t\t\t%d\n',length(fuse_index));
+fprintf(fid,'Instant fusion:\t\t%d\n',fusion_instant);
+fclose(fid);
 
 % docked_index   = find(g_spots.etime(:,1) ~= pma.len);
 save_name = [pma.dir,'new_',pma.name,'_hist_fusion'];
@@ -1235,79 +1249,60 @@ end
 
 
 
-% % --- Executes on button press in chkGrid.
-% function chkGrid_Callback(hObject, eventdata, handles)
-% % hObject    handle to chkGrid (see GCBO)
-% % eventdata  reserved - to be defined in a future version of MATLAB
-% % handles    structure with handles and user data (see GUIDATA)
-% Grid = [handles.horizontal_grid_line_bottom, handles.horizontal_grid_line_top, handles.Vertical_grid_line];
-% status = get(handles.chkGrid, 'Value');
-% if status == 1
-%     set(Grid, 'Visible', 'On')
-% end
-% if status == 0
-%     set(Grid, 'Visible', 'Off')
-% end
-
-
-% --- Executes on button press in CB_horizontal_grid_top.
-function CB_horizontal_grid_top_Callback(hObject, eventdata, handles)
-% hObject    handle to CB_horizontal_grid_top (see GCBO)
+% --- Executes on button press in chkGrid.
+function chkGrid_Callback(hObject, eventdata, handles)
+% hObject    handle to chkGrid (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-status = get(handles.CB_horizontal_grid_top, 'Value');
-if status == 1
-    set(handles.horizontal_grid_line_top, 'Visible', 'On')
-end
-if status == 0
-    set(handles.horizontal_grid_line_top, 'Visible', 'Off')
-end
-
-% --- Executes on button press in CB_horizantal_grid_bottom.
-function CB_horizantal_grid_bottom_Callback(hObject, eventdata, handles)
-% hObject    handle to CB_horizantal_grid_bottom (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-status = get(handles.CB_horizantal_grid_bottom, 'Value');
-if status == 1
-    set(handles.horizontal_grid_line_bottom, 'Visible', 'On')
-end
-if status == 0
-    set(handles.horizontal_grid_line_bottom, 'Visible', 'Off')
-end
-
-
-% --- Executes on button press in CB_vertical_grid.
-function CB_vertical_grid_Callback(hObject, eventdata, handles)
-% hObject    handle to CB_vertical_grid (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-status = get(handles.CB_vertical_grid, 'Value');
-if status == 1
-    set(handles.Vertical_grid_line, 'Visible', 'On')
-end
-if status == 0
-    set(handles.Vertical_grid_line, 'Visible', 'Off')
-end
-
-
-% --- Executes during object creation, after setting all properties.
-function background_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to background (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-
-% --- Executes on button press in CB_grid.
-function CB_grid_Callback(hObject, eventdata, handles)
-% hObject    handle to CB_grid (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-Grid = [handles.horizontal_grid_line_bottom, handles.horizontal_grid_line_top, handles.Vertical_grid_line];
-status = get(handles.CB_grid, 'Value');
+Grid = [handles.gridline_horizontal_bottom, handles.gridline_horizontal_top, handles.gridline_vertical];
+status = get(handles.chkGrid, 'Value');
 if status == 1
     set(Grid, 'Visible', 'On')
 end
 if status == 0
     set(Grid, 'Visible', 'Off')
+end    
+        
+% --- Executes on button press in RB_gridline_vertical.
+function RB_gridline_vertical_Callback(hObject, eventdata, handles)
+% hObject    handle to RB_gridline_vertical (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+status = get(handles.RB_gridline_vertical, 'Value');
+if status == 1
+    set(handles.gridline_vertical, 'Visible', 'On')
 end
+if status == 0
+    set(handles.gridline_vertical, 'Visible', 'Off')
+end    
+
+
+% --- Executes on button press in RB_gridline_horizontal_bottom.
+function RB_gridline_horizontal_bottom_Callback(hObject, eventdata, handles)
+% hObject    handle to RB_gridline_horizontal_bottom (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+status = get(handles.RB_gridline_horizontal_bottom, 'Value');
+if status == 1
+    set(handles.gridline_horizontal_bottom, 'Visible', 'On')
+end
+if status == 0
+    set(handles.gridline_horizontal_bottom, 'Visible', 'Off')
+end 
+
+
+% --- Executes on button press in RB_gridline_horizontal_top.
+function RB_gridline_horizontal_top_Callback(hObject, eventdata, handles)
+% hObject    handle to RB_gridline_horizontal_top (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+status = get(handles.RB_gridline_horizontal_top, 'Value');
+if status == 1
+    set(handles.gridline_horizontal_top, 'Visible', 'On')
+end
+if status == 0
+    set(handles.gridline_horizontal_top, 'Visible', 'Off')
+end 
